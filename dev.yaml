@@ -1,0 +1,4 @@
+host: db.xsran.me
+port: 3306
+user: xsr
+database: construction

@@ -10,7 +10,7 @@ app.register_blueprint(company_api)
 
 
 def main():
-    app.run()
+    app.run(host='0.0.0.0')
 
 
 if __name__ == '__main__':

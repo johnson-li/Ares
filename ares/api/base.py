@@ -8,6 +8,7 @@ from flask import request, jsonify, stream_with_context
 from flask.wrappers import Response
 
 import response_code
+from ares.db.mysql_db import get_cursor
 
 __author__ = 'Johnson'
 
@@ -26,6 +27,7 @@ def handle_restful_request(func, *args, **kwargs):
         kwargs.update(request.form.to_dict())
     if request.files:
         kwargs.update({k: request.files.getlist(k) for k in request.files})
+    kwargs.pop('user_id', None)
     return func(*args, **kwargs)
 
 
@@ -52,6 +54,31 @@ def serialise(data):
         return [serialise(i) for i in data]
     else:
         raise Exception('Unknown return type: ' + str(type(data)))
+
+
+def parse_token(token):
+    cursor = get_cursor()
+    cursor.execute("select * from User where token = '{}'".format(token))
+    users = cursor.fetchall()
+    user = dict(zip(cursor.column_names, users[0])) if len(users) > 0 else None
+    cursor.close()
+    return user['ID'] if user else None
+
+
+def login_required(func):
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        token = kwargs.pop('token', None)
+        if not token:
+            raise Exception('Login is required, no token')
+        user_id = parse_token(token)
+        if not user_id:
+            raise Exception('Invalid token')
+        kwargs['user_id'] = user_id
+        return func(*args, **kwargs)
+
+    _build_deco_chain(wrapped, func, login_required)
+    return wrapped
 
 
 def restful_request(func):

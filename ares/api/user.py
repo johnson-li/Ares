@@ -29,4 +29,4 @@ def user_login(email, password):
     connection.close()
     if user:
         user.pop('Password', None)
-    return {'user': user}
+    return user

@@ -8,7 +8,7 @@ from flask import request, jsonify, stream_with_context
 from flask.wrappers import Response
 
 import response_code
-from ares.db.mysql_db import get_cursor
+from ares.db.mysql_db import get_connection
 
 __author__ = 'Johnson'
 
@@ -57,18 +57,20 @@ def serialise(data):
 
 
 def parse_token(token):
-    cursor = get_cursor()
+    connection = get_connection()
+    cursor = connection.cursor()
     cursor.execute("select * from User where token = '{}'".format(token))
     users = cursor.fetchall()
     user = dict(zip(cursor.column_names, users[0])) if len(users) > 0 else None
     cursor.close()
+    connection.close()
     return user['ID'] if user else None
 
 
 def login_required(func):
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
-        token = kwargs.pop('token', None)
+        token = kwargs.pop('token', None) or request.headers.get('token')
         if not token:
             raise Exception('Login is required, no token')
         user_id = parse_token(token)
@@ -88,9 +90,11 @@ def restful_request(func):
         try:
             data = handle_restful_request(func, *args, **kwargs)
             resp['content'] = serialise(data)
+            resp['error'] = None
         except Exception as e:
             resp['rc'] = response_code.FAIL
-            resp['content'] = type(e).__name__ + ' ' + e.message
+            resp['content'] = None
+            resp['error'] = type(e).__name__ + ' ' + e.message
             traceback.print_exc(file=sys.stdout)
             logging.error(e.message)
         return jsonify(resp)

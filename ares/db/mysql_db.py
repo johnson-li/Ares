@@ -13,5 +13,9 @@ def get_connection():
     return connector.connect(pool_name='pool1')
 
 
+def get_new_cursor():
+    return connector.connect(pool_name='pool1').cursor()
+
+
 def get_cursor():
     return cnx.cursor()

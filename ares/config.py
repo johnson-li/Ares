@@ -1,9 +1,8 @@
-import inspect
 import os.path
 
 from yaml import load
 
-path = os.path.dirname(os.path.dirname(inspect.getfile(inspect.currentframe())))
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 data = load(open(path + '/dev.yaml'))
 

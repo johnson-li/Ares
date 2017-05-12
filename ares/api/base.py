@@ -8,7 +8,7 @@ from flask import request, jsonify, stream_with_context
 from flask.wrappers import Response
 
 import response_code
-from ares.db.mysql_db import get_connection
+from ares.db.mysql_db import get_app_connection
 
 __author__ = 'Johnson'
 
@@ -57,7 +57,7 @@ def serialise(data):
 
 
 def parse_token(token):
-    connection = get_connection()
+    connection = get_app_connection()
     cursor = connection.cursor()
     cursor.execute("select * from User where token = '{}'".format(token))
     users = cursor.fetchall()

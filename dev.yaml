@@ -1,4 +1,5 @@
-host: db.xsran.me
+host_app: db.xsran.me
+host_data: pro.xsran.me
 port: 3306
 user: xsr
 database: construction

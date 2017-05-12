@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from ares.db.mysql_db import get_cursor
+from ares.db.mysql_db import get_data_connection
 from base import restful_request, login_required
 
 staff_api = Blueprint('staff', __name__)
@@ -19,9 +19,9 @@ def staff_query(user_id, offset=0, page_size=10, orders='', name='', company='',
                 gender='', type=''):
     where = []
     if name:
-        where.append(u"name like '%{}%'".format(name))
+        where.append(u"Name like '%{}%'".format(name))
     if id:
-        where.append(u"identityId like '%{}%'".format(id))
+        where.append(u"IdentityID like '%{}%'".format(id))
     if gender:
         where.append(u"Gender like '%{}%'".format(gender))
     if type:
@@ -36,9 +36,10 @@ def staff_query(user_id, offset=0, page_size=10, orders='', name='', company='',
     order = 'order by {}'.format(', '.join(order)) if order else ''
     offset = int(offset)
     page_size = int(page_size)
-    cursor = get_cursor()
-    sql = u'select * from Staff inner join CompanyInfo on Staff.CompanyID = CompanyInfo.ID {} {} limit {} offset {}'.format(
-        where, order, page_size, offset)
+    connection = get_data_connection()
+    cursor = connection.cursor()
+    sql = u'select * from RegisteredStaff inner join CompanyInfo on RegisteredStaff.CompanyID = CompanyInfo.ID {} {} ' \
+          u'limit {} offset {}'.format(where, order, page_size, offset)
     print sql
     cursor.execute(sql)
 
@@ -53,4 +54,5 @@ def staff_query(user_id, offset=0, page_size=10, orders='', name='', company='',
         staff['Company'] = dict(zip(cursor.column_names, companies[0])) if companies else None
 
     cursor.close()
+    connection.close()
     return results

@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from ares.db.mysql_db import get_cursor
+from ares.db.mysql_db import get_cursor, get_data_connection
 from base import restful_request, login_required
 
 company_api = Blueprint('company', __name__)
@@ -18,6 +18,7 @@ def company_all(user_id, offset=0, page_size=10):
     results = []
     for data in cursor:
         results.append(dict(zip(cursor.column_names, data)))
+
     cursor.close()
     return results
 
@@ -53,7 +54,8 @@ def company_query(user_id, offset=0, page_size=10, orders='', name='', people=''
     order = 'order by {}'.format(', '.join(order)) if order else ''
     offset = int(offset)
     page_size = int(page_size)
-    cursor = get_cursor()
+    connection = get_data_connection()
+    cursor = connection.cursor()
     sql = u'select * from CompanyInfo {} {} limit {} offset {}'.format(where, order, page_size, offset)
     print sql
     cursor.execute(sql)
@@ -61,5 +63,20 @@ def company_query(user_id, offset=0, page_size=10, orders='', name='', people=''
     results = []
     for data in cursor:
         results.append(dict(zip(cursor.column_names, data)))
+
+    for company in results:
+        sql = u'select * from CompanyCert where CompanyID = {}'.format(company['ID']);
+        print sql
+        cursor.execute(sql)
+        company['CompanyCerts'] = []
+        for cert in cursor.fetchall():
+            company['CompanyCerts'].append(dict(zip(cursor.column_names, cert)))
+        sql = u'select * from RegisteredStaff where CompanyId = {}'.format(company['ID'])
+        print sql
+        cursor.execute(sql)
+        company['Staffs'] = []
+        for data in cursor.fetchall():
+            company['Staffs'].append(dict(zip(cursor.column_names, data)))
     cursor.close()
+    connection.close()
     return results

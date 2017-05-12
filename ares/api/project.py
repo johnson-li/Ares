@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from ares.db.mysql_db import get_cursor
+from ares.db.mysql_db import get_data_connection
 from base import restful_request, login_required
 
 project_api = Blueprint('project', __name__)
@@ -19,7 +19,7 @@ def project_query(user_id, offset=0, page_size=10, orders='', name='', company='
                   projectType='', projectTime='', source='', judge=''):
     where = []
     if name:
-        where.append(u"name like '%{}%'".format(name))
+        where.append(u"Name like '%{}%'".format(name))
     if projectType:
         where.append(u"ProjectType like '%{}%'".format(projectType))
     if location:
@@ -37,9 +37,10 @@ def project_query(user_id, offset=0, page_size=10, orders='', name='', company='
     order = 'order by {}'.format(', '.join(order)) if order else ''
     offset = int(offset)
     page_size = int(page_size)
-    cursor = get_cursor()
-    sql = u'select * from Project inner join CompanyInfo on Project.CompanyID = CompanyInfo.ID {} {} limit {} offset {}'.format(
-        where, order, page_size, offset)
+    connection = get_data_connection()
+    cursor = connection.cursor()
+    sql = u'select * from Project inner join CompanyInfo on Project.CompanyID = CompanyInfo.ID {} {} ' \
+          u'limit {} offset {}'.format(where, order, page_size, offset)
     print sql
     cursor.execute(sql)
 
@@ -47,4 +48,5 @@ def project_query(user_id, offset=0, page_size=10, orders='', name='', company='
     for data in cursor:
         results.append(dict(zip(cursor.column_names, data)))
     cursor.close()
+    connection.close()
     return results

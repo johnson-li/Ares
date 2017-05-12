@@ -3,7 +3,7 @@ import uuid
 
 from flask import Blueprint
 
-from ares.db.mysql_db import get_connection
+from ares.db.mysql_db import get_app_connection
 from base import restful_request
 
 user_api = Blueprint('user', __name__)
@@ -15,7 +15,7 @@ def user_login(email, password):
     m = hashlib.md5()
     m.update(password)
     hashed = m.hexdigest()
-    connection = get_connection()
+    connection = get_app_connection()
     cursor = connection.cursor()
     cursor.execute("select * from User where email = '{}' and password = '{}'".format(email, hashed))
     users = cursor.fetchall()

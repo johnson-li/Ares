@@ -16,7 +16,7 @@ app.register_blueprint(project_api)
 
 
 def main():
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5123)
 
 
 if __name__ == '__main__':

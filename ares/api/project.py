@@ -47,6 +47,12 @@ def project_query(user_id, offset=0, page_size=10, orders='', name='', company='
     results = []
     for data in cursor:
         results.append(dict(zip(cursor.column_names, data)))
+    for project in results:
+        sql = u'select * from CompanyInfo where ID = {}'.format(project['CompanyID'])
+        print sql
+        cursor.execute(sql)
+        companies = cursor.fetchall()
+        project['Company'] = dict(zip(cursor.column_names, companies[0])) if companies else None
     cursor.close()
     connection.close()
     return results

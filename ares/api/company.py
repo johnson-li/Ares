@@ -71,12 +71,18 @@ def company_query(user_id, offset=0, page_size=10, orders='', name='', people=''
         company['CompanyCerts'] = []
         for cert in cursor.fetchall():
             company['CompanyCerts'].append(dict(zip(cursor.column_names, cert)))
-        sql = u'select * from RegisteredStaff where CompanyId = {}'.format(company['ID'])
+        sql = u'select * from RegisteredStaff where CompanyID = {}'.format(company['ID'])
         print sql
         cursor.execute(sql)
         company['Staffs'] = []
         for data in cursor.fetchall():
             company['Staffs'].append(dict(zip(cursor.column_names, data)))
+        sql = u'select * from Project where CompanyID = {}'.format(company['ID'])
+        print sql
+        cursor.execute(sql)
+        company['Projects'] = []
+        for data in cursor.fetchall():
+            company['Projects'].append(dict(zip(cursor.column_names, data)))
     cursor.close()
     connection.close()
     return results

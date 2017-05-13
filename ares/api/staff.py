@@ -52,6 +52,15 @@ def staff_query(user_id, offset=0, page_size=10, orders='', name='', company='',
         cursor.execute(company_sql)
         companies = cursor.fetchall()
         staff['Company'] = dict(zip(cursor.column_names, companies[0])) if companies else None
+        certs_sql = u'select * from StaffCert where StaffID = {}'.format(staff['ID'])
+        cursor.execute(certs_sql)
+        certs = cursor.fetchall()
+        staff['StaffCerts'] = [dict(zip(cursor.column_names, cert)) for cert in certs] if certs else []
+        achievement_sql = u'select * from StaffAchievement where StaffID = {}'.format(staff['ID'])
+        cursor.execute(achievement_sql)
+        achievements = cursor.fetchall()
+        staff['StaffAchievements'] = [dict(zip(cursor.column_names, achievement)) for achievement in
+                                      achievements] if achievements else []
 
     cursor.close()
     connection.close()

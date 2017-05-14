@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from ares.db.mysql_db import get_cursor, get_data_connection
+from ares.db.mysql_db import get_cursor, get_data_connection, get_app_connection
 from base import restful_request, login_required
 
 company_api = Blueprint('company', __name__)
@@ -60,6 +60,9 @@ def company_query(user_id, offset=0, page_size=10, orders='', name='', people=''
     print sql
     cursor.execute(sql)
 
+    app_connection = get_app_connection()
+    app_cursor = app_connection.cursor()
+
     results = []
     for data in cursor:
         results.append(dict(zip(cursor.column_names, data)))
@@ -83,6 +86,17 @@ def company_query(user_id, offset=0, page_size=10, orders='', name='', people=''
         company['Projects'] = []
         for data in cursor.fetchall():
             company['Projects'].append(dict(zip(cursor.column_names, data)))
+        sql = u'select * from CompanyLike where UserID = {} and CompanyID = {}'.format(user_id, company['ID'])
+        app_cursor.execute(sql)
+        liked = True if app_cursor.fetchall() else False
+        company['Liked'] = liked
+        sql = u'select count(*) from CompanyLike where CompanyID = {}'.format(company['ID'])
+        app_cursor.execute(sql)
+        number = app_cursor.fetchone()[0]
+        company['LikedNum'] = number
+
     cursor.close()
     connection.close()
+    app_cursor.close()
+    app_connection.close()
     return results
